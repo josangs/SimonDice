@@ -1,0 +1,1400 @@
+###############################################################################
+#                                                                             #
+#                                                       04/Feb/2014  11:37:28 #
+# IAR C/C++ Compiler V5.30.1.30284/W32, Kickstart edition for MSP430          #
+# Copyright 1996-2011 IAR Systems AB.                                         #
+#                                                                             #
+#    __rt_version  =  3                                                       #
+#    __double_size =  32                                                      #
+#    __reg_r4      =  free                                                    #
+#    __reg_r5      =  free                                                    #
+#    __pic         =  no                                                      #
+#    __core        =  430                                                     #
+#    Source file   =  C:\Users\Josan\Desktop\Examen SimonDice\simondice.c     #
+#    Command line  =  "C:\Users\Josan\Desktop\Examen SimonDice\simondice.c"   #
+#                     -lCN "C:\Users\Josan\Desktop\Examen                     #
+#                     SimonDice\Debug\List\" -o "C:\Users\Josan\Desktop\Exame #
+#                     n SimonDice\Debug\Obj\" --no_cse --no_unroll            #
+#                     --no_inline --no_code_motion --no_tbaa --debug          #
+#                     -D__MSP430G2553__ -e --double=32 --dlib_config          #
+#                     "C:\Program Files\IAR Systems\Embedded Workbench 6.0    #
+#                     Kickstart\430\LIB\DLIB\dl430fn.h" -On                   #
+#    List file     =  C:\Users\Josan\Desktop\Examen                           #
+#                     SimonDice\Debug\List\simondice.lst                      #
+#    Object file   =  C:\Users\Josan\Desktop\Examen                           #
+#                     SimonDice\Debug\Obj\simondice.r43                       #
+#                                                                             #
+#                                                                             #
+###############################################################################
+
+C:\Users\Josan\Desktop\Examen SimonDice\simondice.c
+      1          /* ************************************************************************** */
+      2          /* PROGRAMA    : Simondice.c (v1.0)                                           */
+      3          /* TARGET      : Donde se va a ejecutar el código(ej. MSP430F169 en simulador)*/
+      4          /* DESCRIPCION : Implementación Hardware del Juego SimonDice                  */
+      5          /* AUTOR       : José Antonio Garrido Siles                                   */
+      6          /* FECHA       : 15-01-2014                                                   */
+      7          /* ESQUEMA     : ACLK= 0 Hz MCLK= SMCLK= default DCO ~ 1MHz
+      8          
+      9          
+     10                          MSP430G2553
+     11                       -----------------                              
+     12                      |                 |             
+     13                   +--|XIN              |             
+     14             XTAL [ ] |                 |             
+     15                   +--|XOUT             |            
+     16                      |                 |
+     17                      |                 |
+     18                      |		      |150 Ohm		      
+     19                      |             P1.0|-/\/\/\--|>|-----------+ LED(BIT0)
+     20                      |                 |                  GND ---
+     21                      |                 |                       -
+     22                      |                 |             o Vcc
+     23                      |                 |             |
+     24                      |                 |            \
+     25                      |                 |             \  1 MOhm
+     26                      |             P1.3|-------------+-/\/\/\--+       PULSADOR 1 (S2)
+     27                      |                 |                       |      
+     28                      |                 |                       |  
+     29          	    |		      |		         GND ---
+     30                      |                 |                       -
+     31                      |                 |
+     32                      |                 | 150 Ohm               
+     33                      |             P1.5|-/\/\/\--|>|-----------+ LED(BIT5)
+     34                      |                 | 150 Ohm               |
+     35                      |             P1.6|-/\/\/\--|>|-----------+ LED(BIT6)
+     36                      |                 |  		GND  ---
+     37                      |                 |                       - 
+     38                      |                 |  		      
+     39                      |                 |             o Vcc
+     40                      |                 |             |
+     41                      |                 |             |
+     42            	    |                 |            \
+     43                      |                 |             \  1 MOhm
+     44                      |             P2.0|-------------+-/\/\/\--+      PULSADOR 2 (S3)
+     45                      |                 |                       |     
+     46                      |                 |                       |    
+     47          	    |		      |		         GND ---
+     48                      |                 |  		      -
+     49                      |                 |              o Vcc
+     50                      |                 |              |
+     51                      |                 |              |
+     52                      |                 |              |      
+     53                      |             P2.1|--------------+-/\/\/\--+    PULSADOR 3 (S4)
+     54                      |                 |                        |
+     55                      |                 |                        |
+     56                      |                 |                    GND---                                 
+     57                      |                 |                        -
+     58                      |                 |              
+     59                      |                 |             
+     60                      |                 |                                               */
+     61          /* ************************************************************************** */
+     62          
+     63          #include "io430g2553.h"
+
+   \                                 In  segment DATA16_AN, at 0x0
+   \   union <unnamed> volatile _A_IE1
+   \                     _A_IE1:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x2
+   \   union <unnamed> volatile _A_IFG1
+   \                     _A_IFG1:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x56
+   \   union <unnamed> volatile _A_DCOCTL
+   \                     _A_DCOCTL:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x57
+   \   union <unnamed> volatile _A_BCSCTL1
+   \                     _A_BCSCTL1:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x21
+   \   union <unnamed> volatile _A_P1OUT
+   \                     _A_P1OUT:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x22
+   \   union <unnamed> volatile _A_P1DIR
+   \                     _A_P1DIR:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x23
+   \   union <unnamed> volatile _A_P1IFG
+   \                     _A_P1IFG:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x24
+   \   union <unnamed> volatile _A_P1IES
+   \                     _A_P1IES:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x25
+   \   union <unnamed> volatile _A_P1IE
+   \                     _A_P1IE:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x27
+   \   union <unnamed> volatile _A_P1REN
+   \                     _A_P1REN:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x29
+   \   union <unnamed> volatile _A_P2OUT
+   \                     _A_P2OUT:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x2a
+   \   union <unnamed> volatile _A_P2DIR
+   \                     _A_P2DIR:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x2b
+   \   union <unnamed> volatile _A_P2IFG
+   \                     _A_P2IFG:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x2c
+   \   union <unnamed> volatile _A_P2IES
+   \                     _A_P2IES:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x2d
+   \   union <unnamed> volatile _A_P2IE
+   \                     _A_P2IE:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x2f
+   \   union <unnamed> volatile _A_P2REN
+   \                     _A_P2REN:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x160
+   \   union <unnamed> volatile _A_TA0CTL
+   \                     _A_TA0CTL:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_AN, at 0x162
+   \   union <unnamed> volatile _A_TA0CCTL0
+   \                     _A_TA0CCTL0:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_AN, at 0x172
+   \   unsigned short volatile TA0CCR0
+   \                     TA0CCR0:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_AN, at 0x120
+   \   union <unnamed> volatile _A_WDTCTL
+   \                     _A_WDTCTL:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_AN, at 0x10fe
+   \   unsigned char const volatile CALDCO_1MHZ
+   \                     CALDCO_1MHZ:
+   \   000000                DS8 1
+
+   \                                 In  segment DATA16_AN, at 0x10ff
+   \   unsigned char const volatile CALBC1_1MHZ
+   \                     CALBC1_1MHZ:
+   \   000000                DS8 1
+     64          #include "intrinsics.h"
+     65          #include "stdlib.h"
+     66          #include "iso646.h"
+     67          
+     68          /* ====== CONSTANTES ======================================================== */
+     69          
+     70          #define ON 1                         //Activo
+     71          #define OFF 0                        //Desactivo
+     72          #define PULS_ON 0                    //Pulsador Pulsado
+     73          #define PULS_OFF 1                   //Pulsador Soltado
+     74          #define LED_ON  1                    //Led encendido
+     75          #define LED_OFF 0                    //Led apagado
+     76          #define tam 10                       //Tamaño de la cadena
+     77          
+     78          /* ====== TIPOS DATOS ======================================================= */
+     79          
+     80          typedef union{
+     81            unsigned volatile char total;   //Todos los flags
+     82            struct{
+     83              unsigned char f0 :1;    //Flag 0
+     84              unsigned char f1 :1;    //Flag 1
+     85              unsigned char f2 :1;    //Flag 2
+     86              unsigned char f3 :1;    //Flag 3
+     87              unsigned char f4 :1;    //Flag 4
+     88              unsigned char f5 :1;    //Flag 5
+     89            };
+     90          } flags;
+     91          
+     92          /* ====== VARIABLES GLOBALES ================================================ */
+     93          
+
+   \                                 In  segment DATA16_Z, align 1, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+     94          flags tareas;         //Flags activacion tareas:
+   \                     tareas:
+   \   000000                DS8 1
+     95                               //BIT0: Tarea_0 -> Pulsador S2 presionado
+     96                               //BIT1: Tarea_1 -> Pulsador S2 soltado
+     97                              //BIT2: Tarea_2 -> Pulsador S3 presionado
+     98                              //BIT3: Tarea_3 -> Pulsador S3 soltado
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+     99          unsigned int has_perdido;    // False = 1 --> La secuencia es buena.
+   \                     has_perdido:
+   \   000000                DS8 2
+    100                                     // True = 0 --> La secuencia se ha fallado.
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+    101          unsigned int sec[tam];   //array que guarda teclas que se han pulsado.
+   \                     sec:
+   \   000000                DS8 20
+    102          //unsigned int sal;
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+    103          unsigned int cont_inicio,cont_medio,cont_final;
+   \                     cont_inicio:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+   \                     cont_medio:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+   \                     cont_final:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+    104          unsigned int inicio,tiempo;
+   \                     inicio:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+   \                     tiempo:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+    105          unsigned int aleatorio, dir_lectura, dir_escritura;
+   \                     aleatorio:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+   \                     dir_lectura:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+   \                     dir_escritura:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+    106          unsigned int leido, color_leido, color_pulsado, aciertos;
+   \                     leido:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+   \                     color_leido:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+   \                     color_pulsado:
+   \   000000                DS8 2
+
+   \                                 In  segment DATA16_Z, align 2, align-sorted
+   \   000000                REQUIRE ?cstart_init_zero
+   \                     aciertos:
+   \   000000                DS8 2
+    107          
+    108          
+    109          
+    110          /* ====== PROTOTIPOS ======================================================== */
+    111          
+    112          void Config_uC(void);
+    113          void Config_Puertos(void);
+    114          void Config_Timers(void);
+    115          
+    116          //Subfunciones
+    117          void genera_aleatorio(void);
+    118          void guarda_color(void);
+    119          void muestra_secuencia(void);
+    120          void pulsa_secuencia(void);
+    121          
+    122          /* ====== PROGRAMA PRINCIPAL ================================================ */
+    123          
+
+   \                                 In  segment CODE, align 2
+    124          int main(void){
+   \                     main:
+    125            Config_uC();
+   \   000000   B012....     CALL    #Config_uC
+    126            Config_Puertos();
+   \   000004   B012....     CALL    #Config_Puertos
+    127            Config_Timers();
+   \   000008   B012....     CALL    #Config_Timers
+    128            tareas.total= 0;
+   \   00000C   C243....     MOV.B   #0x0, &tareas
+    129            has_perdido = 0;
+   \   000010   8243....     MOV.W   #0x0, &has_perdido
+    130            aleatorio = 0;
+   \   000014   8243....     MOV.W   #0x0, &aleatorio
+    131            aciertos = 0;
+   \   000018   8243....     MOV.W   #0x0, &aciertos
+    132            dir_lectura= 0;
+   \   00001C   8243....     MOV.W   #0x0, &dir_lectura
+    133            dir_escritura = 0;
+   \   000020   8243....     MOV.W   #0x0, &dir_escritura
+    134            color_leido = 0;
+   \   000024   8243....     MOV.W   #0x0, &color_leido
+    135            color_pulsado = 0;
+   \   000028   8243....     MOV.W   #0x0, &color_pulsado
+    136            inicio = 0; tiempo = 0;
+   \   00002C   8243....     MOV.W   #0x0, &inicio
+   \   000030   8243....     MOV.W   #0x0, &tiempo
+    137            
+    138            __enable_interrupt();   //Habilita interrupciones
+   \   000034   32D2         EINT
+    139            
+    140            for(;;){
+    141              
+    142              __low_power_mode_0();    //Bajo consumo (LPM0)
+   \                     ??main_0:
+   \   000036   32D01800     BIS.W   #0x18, SR
+    143              while(tareas.total != OFF){
+   \                     ??main_1:
+   \   00003A   C293....     CMP.B   #0x0, &tareas
+   \   00003E   FB27         JEQ     ??main_0
+    144                //Parte Principal.
+    145                if(inicio==1){
+   \   000040   9293....     CMP.W   #0x1, &inicio
+   \   000044   2C20         JNE     ??main_6
+    146                  if(cont_inicio == 6){
+   \   000046   B2900600.... CMP.W   #0x6, &cont_inicio
+   \   00004C   0320         JNE     ??main_7
+    147                    P1OUT_bit.P0 = LED_ON;
+   \   00004E   D2D32100     BIS.B   #0x1, &0x21
+   \   000052   253C         JMP     ??main_6
+    148                  }// if (cont == 1)
+    149                  else if(cont_inicio == 12){
+   \                     ??main_7:
+   \   000054   B2900C00.... CMP.W   #0xc, &cont_inicio
+   \   00005A   0620         JNE     ??main_8
+    150                    P1OUT_bit.P5 = LED_ON;
+   \   00005C   F2D020002100 BIS.B   #0x20, &0x21
+    151                    P1OUT_bit.P0 = LED_OFF;
+   \   000062   D2C32100     BIC.B   #0x1, &0x21
+   \   000066   1B3C         JMP     ??main_6
+    152                  }// else if (cont_inicio == 2)
+    153                  else if(cont_inicio == 18){
+   \                     ??main_8:
+   \   000068   B2901200.... CMP.W   #0x12, &cont_inicio
+   \   00006E   0720         JNE     ??main_9
+    154                    P1OUT_bit.P6 = LED_ON;
+   \   000070   F2D040002100 BIS.B   #0x40, &0x21
+    155                    P1OUT_bit.P5 = LED_OFF;
+   \   000076   F2C020002100 BIC.B   #0x20, &0x21
+   \   00007C   103C         JMP     ??main_6
+    156                  }// else if (cont_inicio == 3)
+    157                  //Espera un 1s para mostrar la secuencia.
+    158                  else if(cont_inicio == 36){
+   \                     ??main_9:
+   \   00007E   B2902400.... CMP.W   #0x24, &cont_inicio
+   \   000084   0C20         JNE     ??main_6
+    159                    P1OUT_bit.P6 = LED_OFF;
+   \   000086   F2C040002100 BIC.B   #0x40, &0x21
+    160                      inicio = 0;
+   \   00008C   8243....     MOV.W   #0x0, &inicio
+    161                      TA0CCTL0_bit.CCIE = OFF;
+   \   000090   B2C010006201 BIC.W   #0x10, &0x162
+    162                      cont_inicio = 0;
+   \   000096   8243....     MOV.W   #0x0, &cont_inicio
+    163                      has_perdido = 0;
+   \   00009A   8243....     MOV.W   #0x0, &has_perdido
+    164                  }// else if(cont_inicio == 36)
+    165                }// if(inicio == 1)
+    166                
+    167                if(inicio == 0){
+   \                     ??main_6:
+   \   00009E   8293....     CMP.W   #0x0, &inicio
+   \   0000A2   CB23         JNE     ??main_1
+    168                  tareas.f0 = OFF; tareas.f2 = OFF; tareas.f4 = OFF;
+   \   0000A4   D2C3....     BIC.B   #0x1, &tareas
+   \   0000A8   E2C2....     BIC.B   #0x4, &tareas
+   \   0000AC   F2C01000.... BIC.B   #0x10, &tareas
+    169                  has_perdido = 0;
+   \   0000B2   8243....     MOV.W   #0x0, &has_perdido
+    170                  //Activo Timer.
+    171                  TA0CTL_bit.TACLR = ON;
+   \   0000B6   A2D26001     BIS.W   #0x4, &0x160
+    172                  TA0CCTL0_bit.CCIE = ON;
+   \   0000BA   B2D010006201 BIS.W   #0x10, &0x162
+    173                  //Activo Timer.
+    174                  cont_final = 0;
+   \   0000C0   8243....     MOV.W   #0x0, &cont_final
+    175                  while(cont_final<=18){
+   \                     ??main_2:
+   \   0000C4   B2901300.... CMP.W   #0x13, &cont_final
+   \   0000CA   FC2B         JNC     ??main_2
+    176                    //Sistema espera un segundo.
+    177                  }//while(cont_final<=18)
+    178                  
+    179                  while(has_perdido == 0){
+   \                     ??main_3:
+   \   0000CC   8293....     CMP.W   #0x0, &has_perdido
+   \   0000D0   1C20         JNE     ??main_10
+    180                    genera_aleatorio();
+   \   0000D2   B012....     CALL    #genera_aleatorio
+    181                    guarda_color();
+   \   0000D6   B012....     CALL    #guarda_color
+    182                    muestra_secuencia();
+   \   0000DA   B012....     CALL    #muestra_secuencia
+    183                    pulsa_secuencia();
+   \   0000DE   B012....     CALL    #pulsa_secuencia
+    184                    if(has_perdido == 0){
+   \   0000E2   8293....     CMP.W   #0x0, &has_perdido
+   \   0000E6   F223         JNE     ??main_3
+    185                      cont_final = 0;
+   \   0000E8   8243....     MOV.W   #0x0, &cont_final
+    186                      aciertos++;
+   \   0000EC   9253....     ADD.W   #0x1, &aciertos
+    187                      P1OUT_bit.P0 = P1OUT_bit.P5 = P1OUT_bit.P6 = OFF;
+   \   0000F0   F2C040002100 BIC.B   #0x40, &0x21
+   \   0000F6   F2C020002100 BIC.B   #0x20, &0x21
+   \   0000FC   D2C32100     BIC.B   #0x1, &0x21
+    188                      while(cont_final<=18){
+   \                     ??main_4:
+   \   000100   B2901300.... CMP.W   #0x13, &cont_final
+   \   000106   E22F         JC      ??main_3
+   \   000108   FB3F         JMP     ??main_4
+    189                        //Sistema espera un segundo.
+    190                      }//while(cont_final<=6)
+    191                    }//if(has_perdido == 0)
+    192                  }// while(has_perdido == 0)
+    193                  cont_final = 0;
+   \                     ??main_10:
+   \   00010A   8243....     MOV.W   #0x0, &cont_final
+    194                  P1OUT &= ~(BIT0 + BIT5 + BIT6);
+   \   00010E   F2F09E002100 AND.B   #0x9e, &0x21
+    195                  while(has_perdido == 1){   //CORREGUIR ESTA RUTINA
+   \                     ??main_5:
+   \   000114   9293....     CMP.W   #0x1, &has_perdido
+   \   000118   9023         JNE     ??main_1
+    196                      //Los led parpadean durante 5s, pero no me lo hace.
+    197                      if(cont_final==0){
+   \   00011A   8293....     CMP.W   #0x0, &cont_final
+   \   00011E   0920         JNE     ??main_11
+    198                        P1OUT_bit.P0 = LED_ON;
+   \   000120   D2D32100     BIS.B   #0x1, &0x21
+    199                        P1OUT_bit.P5 = LED_ON;
+   \   000124   F2D020002100 BIS.B   #0x20, &0x21
+    200                        P1OUT_bit.P6 = LED_ON;
+   \   00012A   F2D040002100 BIS.B   #0x40, &0x21
+   \   000130   F13F         JMP     ??main_5
+    201                      }//if(cont_final == 0)
+    202                      else if(cont_final == 18){
+   \                     ??main_11:
+   \   000132   B2901200.... CMP.W   #0x12, &cont_final
+   \   000138   0920         JNE     ??main_12
+    203                        P1OUT_bit.P0 = LED_OFF;
+   \   00013A   D2C32100     BIC.B   #0x1, &0x21
+    204                        P1OUT_bit.P5 = LED_OFF;
+   \   00013E   F2C020002100 BIC.B   #0x20, &0x21
+    205                        P1OUT_bit.P6 = LED_OFF;
+   \   000144   F2C040002100 BIC.B   #0x40, &0x21
+   \   00014A   E43F         JMP     ??main_5
+    206                      }//else if(cont_final == 18)
+    207                      else if(cont_final == 36){
+   \                     ??main_12:
+   \   00014C   B2902400.... CMP.W   #0x24, &cont_final
+   \   000152   0920         JNE     ??main_13
+    208                        P1OUT_bit.P0 = LED_ON;
+   \   000154   D2D32100     BIS.B   #0x1, &0x21
+    209                        P1OUT_bit.P5 = LED_ON;
+   \   000158   F2D020002100 BIS.B   #0x20, &0x21
+    210                        P1OUT_bit.P6 = LED_ON;
+   \   00015E   F2D040002100 BIS.B   #0x40, &0x21
+   \   000164   D73F         JMP     ??main_5
+    211                      }//else if(cont_final == 36)
+    212                      else if(cont_final == 54){
+   \                     ??main_13:
+   \   000166   B2903600.... CMP.W   #0x36, &cont_final
+   \   00016C   0920         JNE     ??main_14
+    213                        P1OUT_bit.P0 = LED_OFF;
+   \   00016E   D2C32100     BIC.B   #0x1, &0x21
+    214                        P1OUT_bit.P5 = LED_OFF;
+   \   000172   F2C020002100 BIC.B   #0x20, &0x21
+    215                        P1OUT_bit.P6 = LED_OFF;
+   \   000178   F2C040002100 BIC.B   #0x40, &0x21
+   \   00017E   CA3F         JMP     ??main_5
+    216                      }//else if(cont_final == 54)
+    217                      else if(cont_final == 72){
+   \                     ??main_14:
+   \   000180   B2904800.... CMP.W   #0x48, &cont_final
+   \   000186   0920         JNE     ??main_15
+    218                        P1OUT_bit.P0 = LED_ON;
+   \   000188   D2D32100     BIS.B   #0x1, &0x21
+    219                        P1OUT_bit.P5 = LED_ON;
+   \   00018C   F2D020002100 BIS.B   #0x20, &0x21
+    220                        P1OUT_bit.P6 = LED_ON;
+   \   000192   F2D040002100 BIS.B   #0x40, &0x21
+   \   000198   BD3F         JMP     ??main_5
+    221                      }//else if(cont_final == 72)
+    222                      else if(cont_final == 90){
+   \                     ??main_15:
+   \   00019A   B2905A00.... CMP.W   #0x5a, &cont_final
+   \   0001A0   B923         JNE     ??main_5
+    223                        P1OUT_bit.P0 = LED_OFF;
+   \   0001A2   D2C32100     BIC.B   #0x1, &0x21
+    224                        P1OUT_bit.P5 = LED_OFF;
+   \   0001A6   F2C020002100 BIC.B   #0x20, &0x21
+    225                        P1OUT_bit.P6 = LED_OFF;
+   \   0001AC   F2C040002100 BIC.B   #0x40, &0x21
+    226                        aciertos = 0;
+   \   0001B2   8243....     MOV.W   #0x0, &aciertos
+    227                        dir_escritura = 0;
+   \   0001B6   8243....     MOV.W   #0x0, &dir_escritura
+    228                        has_perdido = 0;
+   \   0001BA   8243....     MOV.W   #0x0, &has_perdido
+    229                        TA0CCTL0_bit.CCIE = OFF;
+   \   0001BE   B2C010006201 BIC.W   #0x10, &0x162
+   \   0001C4   A73F         JMP     ??main_5
+   \   0001C6                REQUIRE _A_P1OUT
+   \   0001C6                REQUIRE _A_TA0CCTL0
+   \   0001C6                REQUIRE _A_TA0CTL
+    230                      }//else if(cont_final == 90)
+    231                    }// while(has_perdido == 1)
+    232                }//if(inicio == 0)
+    233             }//while(tareas.total!=OFF)
+    234            }// for(;;)
+    235          }// int main (void)
+    236              
+    237          /* ====== FUNCIONES ========================================================= */
+    238          
+
+   \                                 In  segment CODE, align 2
+    239          void Config_uC(void){
+   \                     Config_uC:
+    240            
+    241                  WDTCTL = WDTPW + WDTHOLD;   //Detiene watchdog
+   \   000000   B240805A2001 MOV.W   #0x5a80, &0x120
+    242                  DCOCTL = 0;                 //Frecuencia DCO (1MHz)
+   \   000006   C2435600     MOV.B   #0x0, &0x56
+    243                  BCSCTL1 = CALBC1_1MHZ;
+   \   00000A   D242FF105700 MOV.B   &0x10ff, &0x57
+    244                  DCOCTL = CALDCO_1MHZ;
+   \   000010   D242FE105600 MOV.B   &0x10fe, &0x56
+    245          
+    246          } // void Config_uC(void)
+   \   000016   3041         RET
+   \   000018                REQUIRE _A_WDTCTL
+   \   000018                REQUIRE _A_DCOCTL
+   \   000018                REQUIRE _A_BCSCTL1
+   \   000018                REQUIRE CALBC1_1MHZ
+   \   000018                REQUIRE CALDCO_1MHZ
+    247          
+
+   \                                 In  segment CODE, align 2
+    248          void Config_Puertos(void) {
+   \                     Config_Puertos:
+    249            
+    250          // ----------------[Pulsador S2]
+    251              
+    252                  P1DIR_bit.P3 = OFF;                //P1.3 --> Entrada (Pulsador S2 placa)
+   \   000000   F2C22200     BIC.B   #0x8, &0x22
+    253                  P1REN_bit.P3 = ON;                 //P1.3 --> Resistencia activa
+   \   000004   F2D22700     BIS.B   #0x8, &0x27
+    254                  P1OUT_bit.P3 = ON;                //P1.3 --> Resistencia pullup
+   \   000008   F2D22100     BIS.B   #0x8, &0x21
+    255                  P1IES_bit.P3 = ON;                //P1.3 --> Flanco de bajada.
+   \   00000C   F2D22400     BIS.B   #0x8, &0x24
+    256                  P1IFG_bit.P3 = OFF;               //Limpia flag P1.3
+   \   000010   F2C22300     BIC.B   #0x8, &0x23
+    257                  P1IE_bit.P3 = ON;                 //Habilita interrupcion P1.3
+   \   000014   F2D22500     BIS.B   #0x8, &0x25
+    258                  
+    259          // ----------------[Pulsador S3]
+    260                  
+    261                  P2DIR_bit.P0 = OFF;               //P2.0 --> Entrada (Pulsador S3 proto)
+   \   000018   D2C32A00     BIC.B   #0x1, &0x2a
+    262                  P2REN_bit.P0 = ON;                //P2.0 --> Resistencia activa  
+   \   00001C   D2D32F00     BIS.B   #0x1, &0x2f
+    263                  P2OUT_bit.P0 = ON;                //P2.0 --> Resistencia pullup
+   \   000020   D2D32900     BIS.B   #0x1, &0x29
+    264                  P2IES_bit.P0 = ON;                //P2.0 --> Flanco de bajada
+   \   000024   D2D32C00     BIS.B   #0x1, &0x2c
+    265                  P2IFG_bit.P0 = OFF;               //Limpia flag P2.0
+   \   000028   D2C32B00     BIC.B   #0x1, &0x2b
+    266                  P2IE_bit.P0 = ON;                 //Habilita interrupcion P2.0
+   \   00002C   D2D32D00     BIS.B   #0x1, &0x2d
+    267            
+    268          // ----------------[Pulsador S4]
+    269                  
+    270                  P2DIR_bit.P1 = OFF;               //P2.1 --> Entrada (Pulsador S4 proto)
+   \   000030   E2C32A00     BIC.B   #0x2, &0x2a
+    271                  P2REN_bit.P1 = ON;                //P2.1 --> Resistencia activa
+   \   000034   E2D32F00     BIS.B   #0x2, &0x2f
+    272                  P2OUT_bit.P1 = ON;                //P2.1 --> Resistencia pullup
+   \   000038   E2D32900     BIS.B   #0x2, &0x29
+    273                  P2IES_bit.P1 = ON;                //P2.1 --> Flanco de bajada
+   \   00003C   E2D32C00     BIS.B   #0x2, &0x2c
+    274                  P2IFG_bit.P1 = OFF;               //Limpia flag P2.1
+   \   000040   E2C32B00     BIC.B   #0x2, &0x2b
+    275                  P2IE_bit.P1 = ON;                 //Habilita interrupcion P2.1
+   \   000044   E2D32D00     BIS.B   #0x2, &0x2d
+    276                  
+    277          // ---------------- [LEDs]
+    278                  
+    279                  P1DIR_bit.P0 = P1DIR_bit.P5 = P1DIR_bit.P6 = ON;   //P1.0, P1.5 y P1.6 --> Salida 
+   \   000048   F2D040002200 BIS.B   #0x40, &0x22
+   \   00004E   F2D020002200 BIS.B   #0x20, &0x22
+   \   000054   D2D32200     BIS.B   #0x1, &0x22
+    280                                                                     //Rojo, Amarillo y Verde.
+    281                  P1OUT_bit.P0 = LED_ON;              //P1.0 --> Encendido ROJO
+   \   000058   D2D32100     BIS.B   #0x1, &0x21
+    282                  P1OUT_bit.P5 = LED_ON;              //P1.5 --> Encendido AMARILLO
+   \   00005C   F2D020002100 BIS.B   #0x20, &0x21
+    283                  P1OUT_bit.P6 = LED_ON;              //P2.4 --> Encendido VERDE.
+   \   000062   F2D040002100 BIS.B   #0x40, &0x21
+    284                 
+    285          } // void Config_Puertos(void)
+   \   000068   3041         RET
+   \   00006A                REQUIRE _A_P1DIR
+   \   00006A                REQUIRE _A_P1REN
+   \   00006A                REQUIRE _A_P1OUT
+   \   00006A                REQUIRE _A_P1IES
+   \   00006A                REQUIRE _A_P1IFG
+   \   00006A                REQUIRE _A_P1IE
+   \   00006A                REQUIRE _A_P2DIR
+   \   00006A                REQUIRE _A_P2REN
+   \   00006A                REQUIRE _A_P2OUT
+   \   00006A                REQUIRE _A_P2IES
+   \   00006A                REQUIRE _A_P2IFG
+   \   00006A                REQUIRE _A_P2IE
+    286          
+
+   \                                 In  segment CODE, align 2
+    287          void Config_Timers(void) {
+   \                     Config_Timers:
+    288            
+    289            TA0CTL = TASSEL_2 + MC_1 + TACLR ;   // Selecciono fuente 1MHz y modo Up to CCR0.
+   \   000000   B24014026001 MOV.W   #0x214, &0x160
+    290            TA0CCR0 = 0xFFFF;   //Contamos hasta 65ms para lo primera parte del programa.
+   \   000006   B2437201     MOV.W   #0xffff, &0x172
+    291            TA0CCTL0_bit.CCIFG=OFF; //Borra el flag de interrupcion.
+   \   00000A   92C36201     BIC.W   #0x1, &0x162
+    292          } // void Config_Timers(void)
+   \   00000E   3041         RET
+   \   000010                REQUIRE _A_TA0CTL
+   \   000010                REQUIRE TA0CCR0
+   \   000010                REQUIRE _A_TA0CCTL0
+    293          
+
+   \                                 In  segment CODE, align 2
+    294          void genera_aleatorio(void){
+   \                     genera_aleatorio:
+    295            aleatorio = rand()%3; // El aletario es 0,1,2.
+   \   000000   B012....     CALL    #rand
+   \   000004   3E400300     MOV.W   #0x3, R14
+   \   000008   B012....     CALL    #?DivMod16s
+   \   00000C   824E....     MOV.W   R14, &aleatorio
+    296          } // void genera_aleatorio()
+   \   000010   3041         RET
+    297          
+
+   \                                 In  segment CODE, align 2
+    298          void guarda_color(void){ //Guarda el color generado 
+   \                     guarda_color:
+    299            sec[dir_escritura]=aleatorio;
+   \   000000   1F42....     MOV.W   &dir_escritura, R15
+   \   000004   0F5F         RLA.W   R15
+   \   000006   9F42........ MOV.W   &aleatorio, sec(R15)
+    300            dir_escritura++;
+   \   00000C   9253....     ADD.W   #0x1, &dir_escritura
+    301          } // void guarda_color()
+   \   000010   3041         RET
+    302          
+
+   \                                 In  segment CODE, align 2
+    303          void muestra_secuencia(void){   //Desde el primero hasta el último que se ha guardado 
+   \                     muestra_secuencia:
+    304            dir_lectura = 0;              //en memoria, los vamos mostrando.
+   \   000000   8243....     MOV.W   #0x0, &dir_lectura
+    305            cont_medio = 0;
+   \   000004   8243....     MOV.W   #0x0, &cont_medio
+    306            while(dir_lectura < dir_escritura){
+   \                     ??muestra_secuencia_3:
+   \   000008   9292........ CMP.W   &dir_escritura, &dir_lectura
+   \   00000E   4F2C         JC      ??muestra_secuencia_4
+    307              color_leido = sec[dir_lectura];
+   \   000010   1F42....     MOV.W   &dir_lectura, R15
+   \   000014   0F5F         RLA.W   R15
+   \   000016   924F........ MOV.W   sec(R15), &color_leido
+    308              if(color_leido == 0){
+   \   00001C   8293....     CMP.W   #0x0, &color_leido
+   \   000020   1320         JNE     ??muestra_secuencia_5
+    309                while(cont_medio<=36){
+   \                     ??muestra_secuencia_0:
+   \   000022   B2902500.... CMP.W   #0x25, &cont_medio
+   \   000028   3D2C         JC      ??muestra_secuencia_6
+    310                  P1OUT_bit.P5 = LED_OFF;
+   \   00002A   F2C020002100 BIC.B   #0x20, &0x21
+    311                  P1OUT_bit.P6 = LED_OFF;
+   \   000030   F2C040002100 BIC.B   #0x40, &0x21
+    312                  P1OUT_bit.P0 = LED_ON;
+   \   000036   D2D32100     BIS.B   #0x1, &0x21
+    313                  if(cont_medio == 36){
+   \   00003A   B2902400.... CMP.W   #0x24, &cont_medio
+   \   000040   F023         JNE     ??muestra_secuencia_0
+    314                    P1OUT_bit.P0 = LED_OFF;
+   \   000042   D2C32100     BIC.B   #0x1, &0x21
+   \   000046   ED3F         JMP     ??muestra_secuencia_0
+    315                  }//if(cont_medio == 36)
+    316                }//while(cont_medio<=36)
+    317              }//if(color_leido == 0)
+    318              else if(color_leido == 1){
+   \                     ??muestra_secuencia_5:
+   \   000048   9293....     CMP.W   #0x1, &color_leido
+   \   00004C   1420         JNE     ??muestra_secuencia_7
+    319                while(cont_medio<=36){
+   \                     ??muestra_secuencia_1:
+   \   00004E   B2902500.... CMP.W   #0x25, &cont_medio
+   \   000054   272C         JC      ??muestra_secuencia_6
+    320                  P1OUT_bit.P0 = LED_OFF;
+   \   000056   D2C32100     BIC.B   #0x1, &0x21
+    321                  P1OUT_bit.P6 = LED_OFF;
+   \   00005A   F2C040002100 BIC.B   #0x40, &0x21
+    322                  P1OUT_bit.P5 = LED_ON;
+   \   000060   F2D020002100 BIS.B   #0x20, &0x21
+    323                  if(cont_medio == 36){
+   \   000066   B2902400.... CMP.W   #0x24, &cont_medio
+   \   00006C   F023         JNE     ??muestra_secuencia_1
+    324                    P1OUT_bit.P5 = LED_OFF;
+   \   00006E   F2C020002100 BIC.B   #0x20, &0x21
+   \   000074   EC3F         JMP     ??muestra_secuencia_1
+    325                  }//if(cont_media == 36)
+    326                }//while(cont_medio<=36)
+    327              }//else if(color_leido == 1)
+    328              else if(color_leido == 2){
+   \                     ??muestra_secuencia_7:
+   \   000076   A293....     CMP.W   #0x2, &color_leido
+   \   00007A   1420         JNE     ??muestra_secuencia_6
+    329                while(cont_medio<=36){
+   \                     ??muestra_secuencia_2:
+   \   00007C   B2902500.... CMP.W   #0x25, &cont_medio
+   \   000082   102C         JC      ??muestra_secuencia_6
+    330                  P1OUT_bit.P6 = LED_ON;
+   \   000084   F2D040002100 BIS.B   #0x40, &0x21
+    331                  P1OUT_bit.P0 = LED_OFF;
+   \   00008A   D2C32100     BIC.B   #0x1, &0x21
+    332                  P1OUT_bit.P5 = LED_OFF;
+   \   00008E   F2C020002100 BIC.B   #0x20, &0x21
+    333                  if(cont_medio == 36){
+   \   000094   B2902400.... CMP.W   #0x24, &cont_medio
+   \   00009A   F023         JNE     ??muestra_secuencia_2
+    334                    P1OUT_bit.P6 = LED_OFF;
+   \   00009C   F2C040002100 BIC.B   #0x40, &0x21
+   \   0000A2   EC3F         JMP     ??muestra_secuencia_2
+    335                  }//if(cont_media == 33)
+    336                }//while(cont_medio<=36)
+    337              }//else if(color_leido == 2)
+    338              dir_lectura++;
+   \                     ??muestra_secuencia_6:
+   \   0000A4   9253....     ADD.W   #0x1, &dir_lectura
+    339              cont_medio = 0;  //Inicializamos para que funcione bien la cuenta.
+   \   0000A8   8243....     MOV.W   #0x0, &cont_medio
+   \   0000AC   AD3F         JMP     ??muestra_secuencia_3
+    340            }// while(dir_lectura < dir_escritura)
+    341          } // void muestra_colores()
+   \                     ??muestra_secuencia_4:
+   \   0000AE   3041         RET
+   \   0000B0                REQUIRE _A_P1OUT
+    342          
+    343          
+
+   \                                 In  segment CODE, align 2
+    344          void pulsa_secuencia(void){  //Recogemos las pulsaciones y se va compobando si son 
+   \                     pulsa_secuencia:
+    345                                  //correctas hasta que alguna no lo sea o hasta que haya-
+    346            dir_lectura = 0;     //mos acertado todos los colores guardados hasta el 
+   \   000000   8243....     MOV.W   #0x0, &dir_lectura
+    347            cont_medio = 0;      //medio.
+   \   000004   8243....     MOV.W   #0x0, &cont_medio
+    348            while((dir_lectura < dir_escritura) && (has_perdido==0)){                 
+   \                     ??pulsa_secuencia_3:
+   \   000008   9292........ CMP.W   &dir_escritura, &dir_lectura
+   \   00000E   7B2C         JC      ??pulsa_secuencia_4
+   \   000010   8293....     CMP.W   #0x0, &has_perdido
+   \   000014   7820         JNE     ??pulsa_secuencia_4
+    349              P1OUT_bit.P0 = P1OUT_bit.P5 = P1OUT_bit.P6 = OFF;
+   \   000016   F2C040002100 BIC.B   #0x40, &0x21
+   \   00001C   F2C020002100 BIC.B   #0x20, &0x21
+   \   000022   D2C32100     BIC.B   #0x1, &0x21
+    350              tiempo = 1;
+   \   000026   9243....     MOV.W   #0x1, &tiempo
+    351            __low_power_mode_0();
+   \   00002A   32D01800     BIS.W   #0x18, SR
+    352              leido = sec[dir_lectura];
+   \   00002E   1F42....     MOV.W   &dir_lectura, R15
+   \   000032   0F5F         RLA.W   R15
+   \   000034   924F........ MOV.W   sec(R15), &leido
+    353              if(leido != color_pulsado){
+   \   00003A   9292........ CMP.W   &color_pulsado, &leido
+   \   000040   0224         JEQ     ??pulsa_secuencia_5
+    354                has_perdido = 1;
+   \   000042   9243....     MOV.W   #0x1, &has_perdido
+    355              }//if (leido != color_pulsado)
+    356              if(color_pulsado == 0 && tareas.f0 == ON){
+   \                     ??pulsa_secuencia_5:
+   \   000046   8293....     CMP.W   #0x0, &color_pulsado
+   \   00004A   1720         JNE     ??pulsa_secuencia_6
+   \   00004C   D2B3....     BIT.B   #0x1, &tareas
+   \   000050   1428         JNC     ??pulsa_secuencia_6
+    357                tareas.f0 = OFF;
+   \   000052   D2C3....     BIC.B   #0x1, &tareas
+    358                while(cont_medio<=8){
+   \                     ??pulsa_secuencia_0:
+   \   000056   B2900900.... CMP.W   #0x9, &cont_medio
+   \   00005C   4F2C         JC      ??pulsa_secuencia_7
+    359                  P1OUT_bit.P5 = LED_OFF;
+   \   00005E   F2C020002100 BIC.B   #0x20, &0x21
+    360                  P1OUT_bit.P6 = LED_OFF;
+   \   000064   F2C040002100 BIC.B   #0x40, &0x21
+    361                  P1OUT_bit.P0 = LED_ON;
+   \   00006A   D2D32100     BIS.B   #0x1, &0x21
+    362                  if(cont_medio == 8){
+   \   00006E   B292....     CMP.W   #0x8, &cont_medio
+   \   000072   F123         JNE     ??pulsa_secuencia_0
+    363                    P1OUT_bit.P0 = LED_OFF;
+   \   000074   D2C32100     BIC.B   #0x1, &0x21
+   \   000078   EE3F         JMP     ??pulsa_secuencia_0
+    364                  }//if(cont_medio == 8)
+    365                }//while(cont_medio<=8)
+    366              }//if(color_pulsado == 0)
+    367              else if(color_pulsado == 1 && tareas.f2 == ON){
+   \                     ??pulsa_secuencia_6:
+   \   00007A   9293....     CMP.W   #0x1, &color_pulsado
+   \   00007E   1C20         JNE     ??pulsa_secuencia_8
+   \   000080   5E42....     MOV.B   &tareas, R14
+   \   000084   12C3         CLRC
+   \   000086   4E10         RRC.B   R14
+   \   000088   4E11         RRA.B   R14
+   \   00008A   5EB3         BIT.B   #0x1, R14
+   \   00008C   1524         JEQ     ??pulsa_secuencia_8
+    368                tareas.f2 = OFF;
+   \   00008E   E2C2....     BIC.B   #0x4, &tareas
+    369                while(cont_medio<=8){
+   \                     ??pulsa_secuencia_1:
+   \   000092   B2900900.... CMP.W   #0x9, &cont_medio
+   \   000098   312C         JC      ??pulsa_secuencia_7
+    370                  P1OUT_bit.P0 = LED_OFF;
+   \   00009A   D2C32100     BIC.B   #0x1, &0x21
+    371                  P1OUT_bit.P6 = LED_OFF;
+   \   00009E   F2C040002100 BIC.B   #0x40, &0x21
+    372                  P1OUT_bit.P5 = LED_ON;
+   \   0000A4   F2D020002100 BIS.B   #0x20, &0x21
+    373                  if(cont_medio == 8){
+   \   0000AA   B292....     CMP.W   #0x8, &cont_medio
+   \   0000AE   F123         JNE     ??pulsa_secuencia_1
+    374                    P1OUT_bit.P5 = LED_OFF;
+   \   0000B0   F2C020002100 BIC.B   #0x20, &0x21
+   \   0000B6   ED3F         JMP     ??pulsa_secuencia_1
+    375                  }//if(cont_media == 8)
+    376                }//while(cont_medio<=8)
+    377              }//else if(color_pulsado == 1)
+    378              else if(color_pulsado == 2 && tareas.f4 == ON){
+   \                     ??pulsa_secuencia_8:
+   \   0000B8   A293....     CMP.W   #0x2, &color_pulsado
+   \   0000BC   1F20         JNE     ??pulsa_secuencia_7
+   \   0000BE   5E42....     MOV.B   &tareas, R14
+   \   0000C2   12C3         CLRC
+   \   0000C4   4E10         RRC.B   R14
+   \   0000C6   4E11         RRA.B   R14
+   \   0000C8   4E11         RRA.B   R14
+   \   0000CA   4E11         RRA.B   R14
+   \   0000CC   5EB3         BIT.B   #0x1, R14
+   \   0000CE   1624         JEQ     ??pulsa_secuencia_7
+    379                tareas.f4 = OFF;
+   \   0000D0   F2C01000.... BIC.B   #0x10, &tareas
+    380                while(cont_medio<=8){
+   \                     ??pulsa_secuencia_2:
+   \   0000D6   B2900900.... CMP.W   #0x9, &cont_medio
+   \   0000DC   0F2C         JC      ??pulsa_secuencia_7
+    381                  P1OUT_bit.P6 = LED_ON;
+   \   0000DE   F2D040002100 BIS.B   #0x40, &0x21
+    382                  P1OUT_bit.P0 = LED_OFF;
+   \   0000E4   D2C32100     BIC.B   #0x1, &0x21
+    383                  P1OUT_bit.P5 = LED_OFF;
+   \   0000E8   F2C020002100 BIC.B   #0x20, &0x21
+    384                  if(cont_medio == 8){
+   \   0000EE   B292....     CMP.W   #0x8, &cont_medio
+   \   0000F2   F123         JNE     ??pulsa_secuencia_2
+    385                    P1OUT_bit.P6 = LED_OFF;
+   \   0000F4   F2C040002100 BIC.B   #0x40, &0x21
+   \   0000FA   ED3F         JMP     ??pulsa_secuencia_2
+    386                  }//if(cont_media == 8)
+    387                }//while(cont_medio<=8)
+    388              }//else if(color_leido == 2)
+    389              dir_lectura++;
+   \                     ??pulsa_secuencia_7:
+   \   0000FC   9253....     ADD.W   #0x1, &dir_lectura
+    390              cont_medio = 0;
+   \   000100   8243....     MOV.W   #0x0, &cont_medio
+   \   000104   813F         JMP     ??pulsa_secuencia_3
+    391            }// while((dir_lectura < dir_escritura)&& (has_perdido==0))
+    392          } // void pulsa_secuencia()
+   \                     ??pulsa_secuencia_4:
+   \   000106   3041         RET
+   \   000108                REQUIRE _A_P1OUT
+    393          
+    394          /* ====== RUTINAS TRATAMIENTO INTERRUPCION ================================== */
+    395          
+    396          #pragma vector = TIMER0_A0_VECTOR
+
+   \                                 In  segment CODE, align 2
+    397          __interrupt void RTI_T0_TACCR0(void){
+   \                     RTI_T0_TACCR0:
+    398            cont_inicio++;
+   \   000000   9253....     ADD.W   #0x1, &cont_inicio
+    399            cont_medio++;
+   \   000004   9253....     ADD.W   #0x1, &cont_medio
+    400            cont_final++;
+   \   000008   9253....     ADD.W   #0x1, &cont_final
+    401          }// __interrupt void RTI_T0_TACCR0
+   \   00000C   0013         RETI
+    402          
+    403          #pragma vector = WDT_VECTOR     //Antirrebote del pulsador S2, S3 y S4
+
+   \                                 In  segment CODE, align 2
+    404          __interrupt void RTI_WD(void){
+   \                     RTI_WD:
+    405            WDTCTL = WDTPW + WDTHOLD;  // Detiene watchdog
+   \   000000   B240805A2001 MOV.W   #0x5a80, &0x120
+    406            P1IFG_bit.P3 = OFF;       //Limpia flag interrupcion P1.3
+   \   000006   F2C22300     BIC.B   #0x8, &0x23
+    407            P1IE_bit.P3 = ON;         //Habilita interrupcion P1.3
+   \   00000A   F2D22500     BIS.B   #0x8, &0x25
+    408            P2IFG &=~(BIT0|BIT1);    //Limpia flag interrupcion P2.0 y P2.1
+   \   00000E   F2F0FC002B00 AND.B   #0xfc, &0x2b
+    409            P2IE |= (BIT0|BIT1);     //Habilita interrupcion P2.0 y P2.1
+   \   000014   F2D003002D00 BIS.B   #0x3, &0x2d
+    410          } // __interrupt void RTI_WD(void)
+   \   00001A   0013         RETI
+   \   00001C                REQUIRE _A_WDTCTL
+   \   00001C                REQUIRE _A_P1IFG
+   \   00001C                REQUIRE _A_P1IE
+   \   00001C                REQUIRE _A_P2IFG
+   \   00001C                REQUIRE _A_P2IE
+    411          
+    412          #pragma vector = PORT1_VECTOR
+
+   \                                 In  segment CODE, align 2
+    413          __interrupt void RTI_P1(void) {
+   \                     RTI_P1:
+   \   000000   0E12         PUSH.W  R14
+    414            P1IE_bit.P3 = OFF;    //Deshabilita interrupcion P1.3
+   \   000002   F2C22500     BIC.B   #0x8, &0x25
+    415            
+    416            // Antirrebote            
+    417            WDTCTL = WDT_MDLY_32;    //Intervalo 32ms utilizando reloj de 1MHz
+   \   000006   B240185A2001 MOV.W   #0x5a18, &0x120
+    418            IFG1_bit.WDTIFG = OFF;    //Limpia flag interrupcion watchdog
+   \   00000C   D2C30200     BIC.B   #0x1, &0x2
+    419            IE1_bit.WDTIE = ON;      //Habilita interrupcion watchdog
+   \   000010   D2D30000     BIS.B   #0x1, &0x0
+    420            //Antirrebote
+    421            
+    422            if(P1IFG_bit.P3 == ON){
+   \   000014   5E422300     MOV.B   &0x23, R14
+   \   000018   12C3         CLRC
+   \   00001A   4E10         RRC.B   R14
+   \   00001C   4E11         RRA.B   R14
+   \   00001E   4E11         RRA.B   R14
+   \   000020   5EB3         BIT.B   #0x1, R14
+   \   000022   2E24         JEQ     ??RTI_P1_0
+    423              if (P1IES_bit.P3 == ON){
+   \   000024   5E422400     MOV.B   &0x24, R14
+   \   000028   12C3         CLRC
+   \   00002A   4E10         RRC.B   R14
+   \   00002C   4E11         RRA.B   R14
+   \   00002E   4E11         RRA.B   R14
+   \   000030   5EB3         BIT.B   #0x1, R14
+   \   000032   1A24         JEQ     ??RTI_P1_1
+    424                //Si flanco de bajada (pulsador presionado)
+    425                tareas.f0 = ON;      //Activar Tarea 0
+   \   000034   D2D3....     BIS.B   #0x1, &tareas
+    426                //configura timer puerto 1
+    427                TA0CTL_bit.TACLR = ON;  //Inicializa cuenta
+   \   000038   A2D26001     BIS.W   #0x4, &0x160
+    428                TA0CCTL0_bit.CCIE = ON;   //Habilita interrupcion Timer0.
+   \   00003C   B2D010006201 BIS.W   #0x10, &0x162
+    429                inicio = 1;
+   \   000042   9243....     MOV.W   #0x1, &inicio
+    430                cont_inicio = 0;
+   \   000046   8243....     MOV.W   #0x0, &cont_inicio
+    431                if(tiempo == 1){ 
+   \   00004A   9293....     CMP.W   #0x1, &tiempo
+   \   00004E   0E20         JNE     ??RTI_P1_2
+    432                  inicio = 0;
+   \   000050   8243....     MOV.W   #0x0, &inicio
+    433                  if(tareas.f0 == ON){     
+   \   000054   D2B3....     BIT.B   #0x1, &tareas
+   \   000058   0228         JNC     ??RTI_P1_3
+    434                    color_pulsado = 0;
+   \   00005A   8243....     MOV.W   #0x0, &color_pulsado
+    435                  }// if(P1IES_bit.P3 == PULS_ON)
+    436                tiempo = 0;
+   \                     ??RTI_P1_3:
+   \   00005E   8243....     MOV.W   #0x0, &tiempo
+    437                cont_medio = 0;
+   \   000062   8243....     MOV.W   #0x0, &cont_medio
+   \   000066   023C         JMP     ??RTI_P1_2
+    438                }// if(tiempo == 1)
+    439              //configura timer puerto 1
+    440              } // if (P1IES_bit.P3 == ON)
+    441              else {
+    442              //Si flanco de subida(pulsador soltado)
+    443                tareas.f1 = ON;      //Activar Tarea_1
+   \                     ??RTI_P1_1:
+   \   000068   E2D3....     BIS.B   #0x2, &tareas
+    444              }// else: if (P1IES_bit.P3 == ON)
+    445              P1IES_bit.P3 = ~(P1IES_bit.P3);    //P1.3 -> Conmuta flanco
+   \                     ??RTI_P1_2:
+   \   00006C   F2B22400     BIT.B   #0x8, &0x24
+   \   000070   0328         JNC     ??RTI_P1_4
+   \   000072   F2C22400     BIC.B   #0x8, &0x24
+   \   000076   023C         JMP     ??RTI_P1_5
+   \                     ??RTI_P1_4:
+   \   000078   F2D22400     BIS.B   #0x8, &0x24
+    446              P1IFG_bit.P3 = OFF;                // Limpia flag P1.3
+   \                     ??RTI_P1_5:
+   \   00007C   F2C22300     BIC.B   #0x8, &0x23
+    447              }//if(P1IFG_bit.P3 == ON)
+    448          
+    449            //Led apagados.
+    450            P1OUT_bit.P0 = P1OUT_bit.P5 = P1OUT_bit.P6 = LED_OFF;
+   \                     ??RTI_P1_0:
+   \   000080   F2C040002100 BIC.B   #0x40, &0x21
+   \   000086   F2C020002100 BIC.B   #0x20, &0x21
+   \   00008C   D2C32100     BIC.B   #0x1, &0x21
+    451            
+    452            if(tareas.total != OFF){
+   \   000090   C293....     CMP.B   #0x0, &tareas
+   \   000094   0324         JEQ     ??RTI_P1_6
+    453              //Si alguna tarea activa
+    454              __low_power_mode_off_on_exit();  //Sale bajo consumo (LPM0)
+   \   000096   B1C0F0000200 BIC.W   #0xf0, 0x2(SP)
+    455            } // if (tareas.total != OFF)
+    456          } // void RTI_P1(void)
+   \                     ??RTI_P1_6:
+   \   00009C   3E41         POP.W   R14
+   \   00009E   0013         RETI
+   \   0000A0                REQUIRE _A_P1IE
+   \   0000A0                REQUIRE _A_WDTCTL
+   \   0000A0                REQUIRE _A_IFG1
+   \   0000A0                REQUIRE _A_IE1
+   \   0000A0                REQUIRE _A_P1IFG
+   \   0000A0                REQUIRE _A_P1IES
+   \   0000A0                REQUIRE _A_TA0CTL
+   \   0000A0                REQUIRE _A_TA0CCTL0
+   \   0000A0                REQUIRE _A_P1OUT
+    457          
+    458          #pragma vector = PORT2_VECTOR
+
+   \                                 In  segment CODE, align 2
+    459          __interrupt void RTI_P2(void) {
+   \                     RTI_P2:
+   \   000000   0E12         PUSH.W  R14
+    460            P2IE_bit.P0 = P2IE_bit.P1 = OFF;   //Deshabilita interrupcion P2.0 y P2.1
+   \   000002   E2C32D00     BIC.B   #0x2, &0x2d
+   \   000006   D2C32D00     BIC.B   #0x1, &0x2d
+    461            
+    462            //Antirrebote
+    463            WDTCTL = WDT_MDLY_32;      //Intervalo de 32ms utilizando reloj de 1MHz
+   \   00000A   B240185A2001 MOV.W   #0x5a18, &0x120
+    464            IFG1_bit.WDTIFG = OFF;     //Limpia flag interrupcion watchdog
+   \   000010   D2C30200     BIC.B   #0x1, &0x2
+    465            IE1_bit.WDTIE = ON;      //Habilita interrupcion watchdog
+   \   000014   D2D30000     BIS.B   #0x1, &0x0
+    466            //Antirrebote
+    467          
+    468            if(P2IFG_bit.P0 == ON){
+   \   000018   D2B32B00     BIT.B   #0x1, &0x2b
+   \   00001C   2D28         JNC     ??RTI_P2_0
+    469              if(P2IES_bit.P0 == ON){
+   \   00001E   D2B32C00     BIT.B   #0x1, &0x2c
+   \   000022   1E28         JNC     ??RTI_P2_1
+    470                //Si flanco de bajada (pulsador presionado), nos da el dato de S3 
+    471                tareas.f2 = ON;   // Activar Tarea_2
+   \   000024   E2D2....     BIS.B   #0x4, &tareas
+    472                //Configura Timer puerto 2
+    473                TA0CTL_bit.TACLR = ON;  //Inicializa cuenta
+   \   000028   A2D26001     BIS.W   #0x4, &0x160
+    474                TA0CCTL0_bit.CCIE = ON;   //Habilita interrupcion Timer0.
+   \   00002C   B2D010006201 BIS.W   #0x10, &0x162
+    475                inicio = 1;
+   \   000032   9243....     MOV.W   #0x1, &inicio
+    476                cont_inicio = 0;
+   \   000036   8243....     MOV.W   #0x0, &cont_inicio
+    477                if(tiempo == 1){
+   \   00003A   9293....     CMP.W   #0x1, &tiempo
+   \   00003E   1220         JNE     ??RTI_P2_2
+    478                  inicio = 0;
+   \   000040   8243....     MOV.W   #0x0, &inicio
+    479                  if(tareas.f2 == ON){
+   \   000044   5E42....     MOV.B   &tareas, R14
+   \   000048   12C3         CLRC
+   \   00004A   4E10         RRC.B   R14
+   \   00004C   4E11         RRA.B   R14
+   \   00004E   5EB3         BIT.B   #0x1, R14
+   \   000050   0224         JEQ     ??RTI_P2_3
+    480                    color_pulsado = 1;
+   \   000052   9243....     MOV.W   #0x1, &color_pulsado
+    481                  }//if(tareas.f2 == ON)
+    482                  tiempo = 0;
+   \                     ??RTI_P2_3:
+   \   000056   8243....     MOV.W   #0x0, &tiempo
+    483                  cont_medio = 0;
+   \   00005A   8243....     MOV.W   #0x0, &cont_medio
+   \   00005E   023C         JMP     ??RTI_P2_2
+    484                }//if(tiempo == 1)
+    485              }// if (P2IES_bit.P0 == ON)
+    486              else{
+    487                tareas.f3 = ON;
+   \                     ??RTI_P2_1:
+   \   000060   F2D2....     BIS.B   #0x8, &tareas
+    488              }
+    489              P2IES_bit.P0 = ~(P2IES_bit.P0); //P2.0 -> Conmuta flanco
+   \                     ??RTI_P2_2:
+   \   000064   D2B32C00     BIT.B   #0x1, &0x2c
+   \   000068   0328         JNC     ??RTI_P2_4
+   \   00006A   D2C32C00     BIC.B   #0x1, &0x2c
+   \   00006E   023C         JMP     ??RTI_P2_5
+   \                     ??RTI_P2_4:
+   \   000070   D2D32C00     BIS.B   #0x1, &0x2c
+    490              P2IFG_bit.P0 = OFF;             //Limpia flag P2.0
+   \                     ??RTI_P2_5:
+   \   000074   D2C32B00     BIC.B   #0x1, &0x2b
+    491            }//if(P2IFG_bit.P0 == ON)
+    492            
+    493            if(P2IFG_bit.P1 == ON){
+   \                     ??RTI_P2_0:
+   \   000078   5E422B00     MOV.B   &0x2b, R14
+   \   00007C   12C3         CLRC
+   \   00007E   4E10         RRC.B   R14
+   \   000080   5EB3         BIT.B   #0x1, R14
+   \   000082   3424         JEQ     ??RTI_P2_6
+    494              if(P2IES_bit.P1 == ON){
+   \   000084   5E422C00     MOV.B   &0x2c, R14
+   \   000088   12C3         CLRC
+   \   00008A   4E10         RRC.B   R14
+   \   00008C   5EB3         BIT.B   #0x1, R14
+   \   00008E   2124         JEQ     ??RTI_P2_7
+    495                tareas.f4 = ON;   //Activar Tarea_4
+   \   000090   F2D01000.... BIS.B   #0x10, &tareas
+    496                //Configura Timer puerto 2
+    497                TA0CTL_bit.TACLR = ON;   //Inicializa cuenta
+   \   000096   A2D26001     BIS.W   #0x4, &0x160
+    498                TA0CCTL0_bit.CCIE = ON;  //Habilita interrupcion Timer0
+   \   00009A   B2D010006201 BIS.W   #0x10, &0x162
+    499                inicio = 1;
+   \   0000A0   9243....     MOV.W   #0x1, &inicio
+    500                cont_inicio = 0;
+   \   0000A4   8243....     MOV.W   #0x0, &cont_inicio
+    501                if(tiempo == 1){
+   \   0000A8   9293....     CMP.W   #0x1, &tiempo
+   \   0000AC   1520         JNE     ??RTI_P2_8
+    502                  inicio = 0;
+   \   0000AE   8243....     MOV.W   #0x0, &inicio
+    503                  if(tareas.f4 == ON){
+   \   0000B2   5E42....     MOV.B   &tareas, R14
+   \   0000B6   12C3         CLRC
+   \   0000B8   4E10         RRC.B   R14
+   \   0000BA   4E11         RRA.B   R14
+   \   0000BC   4E11         RRA.B   R14
+   \   0000BE   4E11         RRA.B   R14
+   \   0000C0   5EB3         BIT.B   #0x1, R14
+   \   0000C2   0224         JEQ     ??RTI_P2_9
+    504                    color_pulsado = 2;
+   \   0000C4   A243....     MOV.W   #0x2, &color_pulsado
+    505                  }//if(tareas.f4 == ON)
+    506                  tiempo = 0;
+   \                     ??RTI_P2_9:
+   \   0000C8   8243....     MOV.W   #0x0, &tiempo
+    507                  cont_medio = 0;
+   \   0000CC   8243....     MOV.W   #0x0, &cont_medio
+   \   0000D0   033C         JMP     ??RTI_P2_8
+    508                }//if(tiempo == 1)
+    509              }//if(P2IES_bit.P1 == ON)
+    510              else{
+    511                //Si flanco de subida(pulsador soltado)
+    512                tareas.f5 = ON;  // Activar Tarea_5
+   \                     ??RTI_P2_7:
+   \   0000D2   F2D02000.... BIS.B   #0x20, &tareas
+    513              }// else: if(P2IES_bit.P1 == ON)
+    514              P2IES_bit.P1 = ~(P2IES_bit.P1);  //P2.1 -> Conmuta flanco
+   \                     ??RTI_P2_8:
+   \   0000D8   E2B32C00     BIT.B   #0x2, &0x2c
+   \   0000DC   0328         JNC     ??RTI_P2_10
+   \   0000DE   E2C32C00     BIC.B   #0x2, &0x2c
+   \   0000E2   023C         JMP     ??RTI_P2_11
+   \                     ??RTI_P2_10:
+   \   0000E4   E2D32C00     BIS.B   #0x2, &0x2c
+    515              P2IFG_bit.P1 = OFF;              //Limpia flag P2.
+   \                     ??RTI_P2_11:
+   \   0000E8   E2C32B00     BIC.B   #0x2, &0x2b
+    516            }//if(P2IFG_bit.P1 == ON)
+    517          
+    518            //Led apagados
+    519            P1OUT_bit.P0 = P1OUT_bit.P5 = P1OUT_bit.P6 = LED_OFF;
+   \                     ??RTI_P2_6:
+   \   0000EC   F2C040002100 BIC.B   #0x40, &0x21
+   \   0000F2   F2C020002100 BIC.B   #0x20, &0x21
+   \   0000F8   D2C32100     BIC.B   #0x1, &0x21
+    520          
+    521            if(tareas.total != OFF){
+   \   0000FC   C293....     CMP.B   #0x0, &tareas
+   \   000100   0324         JEQ     ??RTI_P2_12
+    522              //Si alguna tarea activa
+    523              __low_power_mode_off_on_exit();   //Sale bajo consumo (LPM0)
+   \   000102   B1C0F0000200 BIC.W   #0xf0, 0x2(SP)
+    524            } // if(tareas.total != OFF)  
+    525          } // void RTI_P2(void) 
+   \                     ??RTI_P2_12:
+   \   000108   3E41         POP.W   R14
+   \   00010A   0013         RETI
+   \   00010C                REQUIRE _A_P2IE
+   \   00010C                REQUIRE _A_WDTCTL
+   \   00010C                REQUIRE _A_IFG1
+   \   00010C                REQUIRE _A_IE1
+   \   00010C                REQUIRE _A_P2IFG
+   \   00010C                REQUIRE _A_P2IES
+   \   00010C                REQUIRE _A_TA0CTL
+   \   00010C                REQUIRE _A_TA0CCTL0
+   \   00010C                REQUIRE _A_P1OUT
+
+   \                                 In  segment INTVEC, offset 0x4, root
+   \                     `??RTI_P1??INTVEC 4`:
+   \   000004   ....         DC16    RTI_P1
+
+   \                                 In  segment INTVEC, offset 0x6, root
+   \                     `??RTI_P2??INTVEC 6`:
+   \   000006   ....         DC16    RTI_P2
+
+   \                                 In  segment INTVEC, offset 0x12, root
+   \                     `??RTI_T0_TACCR0??INTVEC 18`:
+   \   000012   ....         DC16    RTI_T0_TACCR0
+
+   \                                 In  segment INTVEC, offset 0x14, root
+   \                     `??RTI_WD??INTVEC 20`:
+   \   000014   ....         DC16    RTI_WD
+
+   Maximum stack usage in bytes:
+
+     Function               CSTACK
+     --------               ------
+     Config_Puertos             2
+     Config_Timers              2
+     Config_uC                  2
+     RTI_P1                     6
+     RTI_P2                     6
+     RTI_T0_TACCR0              4
+     RTI_WD                     4
+     genera_aleatorio           2
+       -> rand                  2
+     guarda_color               2
+     main                       2
+       -> Config_uC             2
+       -> Config_Puertos        2
+       -> Config_Timers         2
+       -> genera_aleatorio      2
+       -> guarda_color          2
+       -> muestra_secuencia     2
+       -> pulsa_secuencia       2
+     muestra_secuencia          2
+     pulsa_secuencia            2
+
+
+   Segment part sizes:
+
+     Function/Label             Bytes
+     --------------             -----
+     _A_IE1                        1
+     _A_IFG1                       1
+     _A_DCOCTL                     1
+     _A_BCSCTL1                    1
+     _A_P1OUT                      1
+     _A_P1DIR                      1
+     _A_P1IFG                      1
+     _A_P1IES                      1
+     _A_P1IE                       1
+     _A_P1REN                      1
+     _A_P2OUT                      1
+     _A_P2DIR                      1
+     _A_P2IFG                      1
+     _A_P2IES                      1
+     _A_P2IE                       1
+     _A_P2REN                      1
+     _A_TA0CTL                     2
+     _A_TA0CCTL0                   2
+     TA0CCR0                       2
+     _A_WDTCTL                     2
+     CALDCO_1MHZ                   1
+     CALBC1_1MHZ                   1
+     tareas                        1
+     has_perdido                   2
+     sec                          20
+     cont_inicio                   2
+     cont_medio                    2
+     cont_final                    2
+     inicio                        2
+     tiempo                        2
+     aleatorio                     2
+     dir_lectura                   2
+     dir_escritura                 2
+     leido                         2
+     color_leido                   2
+     color_pulsado                 2
+     aciertos                      2
+     main                        454
+     Config_uC                    24
+     Config_Puertos              106
+     Config_Timers                16
+     genera_aleatorio             18
+     guarda_color                 18
+     muestra_secuencia           176
+     pulsa_secuencia             264
+     RTI_T0_TACCR0                14
+     RTI_WD                       28
+     RTI_P1                      160
+     RTI_P2                      268
+     ??RTI_P1??INTVEC 4            2
+     ??RTI_P2??INTVEC 6            2
+     ??RTI_T0_TACCR0??INTVEC 18    2
+     ??RTI_WD??INTVEC 20           2
+
+ 
+ 1 546 bytes in segment CODE
+    26 bytes in segment DATA16_AN
+    47 bytes in segment DATA16_Z
+     8 bytes in segment INTVEC
+ 
+ 1 546 bytes of CODE  memory
+     0 bytes of CONST memory (+  8 bytes shared)
+    47 bytes of DATA  memory (+ 26 bytes shared)
+
+Errors: none
+Warnings: none
